@@ -61,12 +61,12 @@ provider_id = &"ground"
 config = ExtResource("3_move_cfg")
 
 [node name="CameraRig" parent="." instance=ExtResource("4_camera_rig")]
-visual_root = NodePath("../Visual")
+visual_root_path = NodePath("../Visual")
 
 [node name="Blaster" type="Node3D" parent="."]
 script = ExtResource("5_blaster")
 charge_config = ExtResource("6_charge_cfg")
-muzzle = NodePath("Muzzle")
+muzzle_path = NodePath("Muzzle")
 allow_dry_fire = true
 
 [node name="Muzzle" type="Marker3D" parent="Blaster"]

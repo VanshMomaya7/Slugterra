@@ -27,14 +27,22 @@ const LAUNCHER_SCRIPT_PATH := "res://src/slug/slug_launcher.gd"
 const LAUNCH_REQUEST_SCRIPT_PATH := "res://src/slug/launch_request.gd"
 
 @export var charge_config: ChargeConfig
-## Where shots leave from. Falls back to this node's own transform.
-@export var muzzle: Marker3D
+## Where shots leave from, relative to this node. Resolved in [method _ready].
+##
+## A NodePath rather than an exported `Marker3D`: every scene in this project is
+## hand-authored as text, and a Node-typed export written by hand does not
+## reliably resolve outside the editor - it silently lands as null and the shot
+## quietly leaves from the wrong place. An explicit path cannot fail silently.
+@export var muzzle_path: NodePath = ^"Muzzle"
 ## Node the projectile is parented to. Resolved from the `projectile_container`
 ## group when left empty, so origin shifting can move every live shot together.
 @export var projectile_parent_path: NodePath
 ## M0 only: allow charging with no belt or launcher wired, so the charge timing
 ## can be playtested before B0 lands. Turn off once the projectile is real.
 @export var allow_dry_fire := true
+
+## Resolved from [member muzzle_path]. Falls back to this node's own transform.
+var muzzle: Marker3D
 
 var _belt: Object
 var _camera_rig: CameraRig
@@ -51,6 +59,9 @@ var _launcher_checked := false
 
 func _ready() -> void:
 	set_physics_process(false)
+	muzzle = get_node_or_null(muzzle_path) as Marker3D
+	if muzzle == null and not muzzle_path.is_empty():
+		push_warning("Blaster: muzzle_path '%s' did not resolve; firing from the blaster origin." % muzzle_path)
 	if charge_config == null:
 		push_warning("Blaster has no ChargeConfig; using defaults.")
 		charge_config = ChargeConfig.new()

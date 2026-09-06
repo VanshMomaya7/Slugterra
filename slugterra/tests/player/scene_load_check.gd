@@ -146,6 +146,13 @@ func _spawn_player() -> void:
 	if packed == null:
 		_fail("player.tscn missing")
 		return
+	# Codex's launcher refuses a shot with nowhere to parent the projectile, so
+	# the harness supplies the same container the real scene provides.
+	var container := Node3D.new()
+	container.name = "Projectiles"
+	container.add_to_group(&"projectile_container")
+	root.add_child(container)
+
 	_player = packed.instantiate()
 	root.add_child(_player)
 
