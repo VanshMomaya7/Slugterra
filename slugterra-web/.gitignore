@@ -11,3 +11,4 @@ playwright-report/
 # Licensor art quarantine (TDD v2.0 s8.1). The greybox build must stay fully
 # playable with this folder absent.
 public/assets/licensed/
+*.tsbuildinfo
