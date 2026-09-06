@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_camera_profile")
-arm_length = 3.5
-shoulder_offset = Vector2(0, 0)
+arm_length = 4.2
+shoulder_offset = Vector2(0.55, 0.12)
 pivot_height = 1.6
 fov = 75.0
 sensitivity = 0.12
