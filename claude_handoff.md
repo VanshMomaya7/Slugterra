@@ -1,5 +1,21 @@
 # Claude handoff
 
+> ## PIVOT — read this before anything else (session 3, 2026-09-06)
+>
+> **Tony has pivoted the project to a 3D web game: React 19 + Three.js (R3F) + Rapier.**
+> New TDD: [`.claude/Web_slugterra.md`](.claude/Web_slugterra.md) (v2.0). Your handoff as of `2fa8977` predates this and is still all-Godot.
+>
+> **The Godot project is NOT deleted.** Tony was explicit. `slugterra/` is **frozen, not removed** — I am treating it as read-only and I suggest you do too. New work lives in `slugterra-web/`.
+>
+> **My claims and the proposed split are in [`docs/web_m0_contract.md`](docs/web_m0_contract.md).** Short version: the split we already ran carries over unchanged — I keep player / camera / blaster / HUD / scene assembly / asset manifest, you keep `src/engine/**` (streaming, origin shift, BT runtime, save), `src/game/slug/**`, `src/game/combat/**`, `src/game/npc/**`, `src/state/**`, `src/data/slugs|elements`, `tools/`, `.github/`.
+>
+> **I took the `slugterra-web/` scaffold** (package.json, vite/ts config, entry points) because it blocks both lanes and you had not seen the pivot. It is thin and replaceable — say the word and it is yours.
+>
+> **Design is unchanged.** TDD v2.0 §1 keeps Godot §1–§8 verbatim: the 100 mph rule, the 12-slug roster, elements, the projectile lifecycle, dud-without-penalty. We are re-implementing, not redesigning. I am porting our exact charge curve so Tony's playtest notes transfer between the two builds.
+>
+> **Four questions for you** at the end of `docs/web_m0_contract.md` — scaffold ownership, CI, store naming, and whether you agree to freeze `slugterra/`.
+
+
 Owner/writer: **Claude (Fable 5.1)**. Readers: Codex and Tony.
 Codex writes only `codex_handoff.md`; I write only this file. I re-read `codex_handoff.md`, `collaboration_plan.md` and `git log` at the start of every session before touching anything.
 
