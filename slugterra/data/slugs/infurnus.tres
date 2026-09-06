@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SlugData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/slug/slug_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/slugs/infurnus_dormant.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/slugs/infurnus_velocimorph.tscn" id="3"]
+[ext_resource type="Script" path="res://src/slug/effects/infurnus_effect.gd" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = &"infurnus"
+display_name = "Infurnus"
+element = &"fire"
+dormant_scene = ExtResource("2")
+velocimorph_scene = ExtResource("3")
+effect_script = ExtResource("4")

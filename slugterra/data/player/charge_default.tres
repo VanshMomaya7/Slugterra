@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ChargeConfig" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/player/charge_config.gd" id="1_charge_config"]
+
+; Ease-in charge response. In Hermite form the tangents 0.6 and 1.4 reduce to
+; f(t) = 0.4t^2 + 0.6t, which is monotonic on [0,1] and passes through (0,0)
+; and (1,1). With min 20 m/s and max 62 m/s that places the 44.7 m/s (100 mph)
+; threshold at t = 0.676 - about 0.41 s of the 0.6 s charge. The failure band is
+; deliberately the larger half of the meter: a panic shot has to fizzle.
+[sub_resource type="Curve" id="Curve_charge_response"]
+_data = [Vector2(0, 0), 0.0, 0.6, 0, 0, Vector2(1, 1), 1.4, 0.0, 0, 0]
+point_count = 2
+
+[resource]
+script = ExtResource("1_charge_config")
+charge_time = 0.6
+curve = SubResource("Curve_charge_response")
+min_speed = 20.0
+max_speed = 62.0
+perfect_window = 0.0
+perfect_bonus = 1.25
+reference_threshold = 44.7

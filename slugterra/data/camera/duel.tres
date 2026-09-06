@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CameraProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/player/camera_profile.gd" id="1_camera_profile"]
+
+[resource]
+script = ExtResource("1_camera_profile")
+arm_length = 4.6
+shoulder_offset = Vector2(0.25, 0.25)
+pivot_height = 1.6
+fov = 68.0
+sensitivity = 0.1
+pitch_min_deg = -45.0
+pitch_max_deg = 55.0
+blend_time = 0.4
+follow_lag = 0.05
+occlusion_fade_distance = 1.4
+occlusion_hide_distance = 0.5

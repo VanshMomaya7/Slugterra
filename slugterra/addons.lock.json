@@ -1,0 +1,33 @@
+{
+  "godot": "4.7.2-stable",
+  "addons": [
+    {
+      "name": "Terrain3D",
+      "directory": "terrain_3d",
+      "version": "1.0.2-stable",
+      "url": "https://github.com/TokisanGames/Terrain3D/releases/download/v1.0.2-stable/Terrain3D_v1.0.2-stable.zip",
+      "sha256": "a071850250ec5e596aa54da61c01d75768774eb379ee997584d426a45f4884a2",
+      "license": "MIT",
+      "compatibility": "Upstream declares 4.4-4.6+; local 4.7.2 import must be verified."
+    },
+    {
+      "name": "LimboAI",
+      "directory": "limboai",
+      "version": "1.8.0",
+      "url": "https://github.com/limbonaut/limboai/releases/download/v1.8.0/limboai%2Bv1.8.0.gdextension-4.6.zip",
+      "sha256": "f95ef170ee41cb587cc720bdd1ea5f496ada1d4017456348c01f308495973c40",
+      "license": "MIT",
+      "compatibility": "Release adds Godot 4.7 support; its GDExtension asset is named 4.6. Verify locally."
+    },
+    {
+      "name": "gdUnit4",
+      "directory": "gdUnit4",
+      "version": "6.2.0",
+      "commit": "d18770221c2df4a3c991a42fdce7907df40eea75",
+      "url": "https://github.com/godot-gdunit-labs/gdUnit4/archive/d18770221c2df4a3c991a42fdce7907df40eea75.zip",
+      "sha256": "2253d2a4eb37c4dfcf6825d803e3aca450efbc371c9ef31e2f3de7a320fa5802",
+      "license": "MIT",
+      "compatibility": "6.2 supports the Godot 4.7 line; verify suites on pinned 4.7.2."
+    }
+  ]
+}

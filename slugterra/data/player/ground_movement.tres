@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="MovementConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/player/movement_config.gd" id="1_movement_config"]
+
+[resource]
+script = ExtResource("1_movement_config")
+walk_speed = 4.5
+run_speed = 7.5
+aim_speed = 3.0
+acceleration = 30.0
+deceleration = 40.0
+air_control = 0.4
+turn_speed_deg = 720.0
+jump_velocity = 5.5
+gravity_scale = 1.0
+coyote_time = 0.12
+jump_buffer = 0.12
+jump_cut_multiplier = 0.45
+terminal_velocity = 55.0
+max_slope_deg = 46.0
+ground_stick_speed = 0.1
+idle_speed_epsilon = 0.15

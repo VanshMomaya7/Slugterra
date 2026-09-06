@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/player/camera_rig.gd" id="1_camera_rig"]
+[ext_resource type="Resource" path="res://data/camera/explore.tres" id="2_explore"]
+[ext_resource type="Resource" path="res://data/camera/aim.tres" id="3_aim"]
+[ext_resource type="Resource" path="res://data/camera/duel.tres" id="4_duel"]
+
+[node name="CameraRig" type="Node3D"]
+script = ExtResource("1_camera_rig")
+explore_profile = ExtResource("2_explore")
+aim_profile = ExtResource("3_aim")
+duel_profile = ExtResource("4_duel")
+
+[node name="Pivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="Pivot"]
+collision_mask = 257
+spring_length = 3.5
+margin = 0.2
+
+[node name="Camera3D" type="Camera3D" parent="Pivot/SpringArm3D"]
+fov = 75.0
+near = 0.08
+far = 2000.0
