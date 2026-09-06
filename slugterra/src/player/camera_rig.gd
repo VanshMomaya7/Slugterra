@@ -245,8 +245,8 @@ func _update_occlusion_fade() -> void:
 
 	var transparency := 0.0
 	# Godot 4.7 exposes hit length but no is_colliding() helper. A zero hit
-	# length is the clear-arm sentinel; only fade when the arm reports a real
-	# positive obstruction distance.
+	# length is the clear-arm sentinel in an unsimulated test rig; only fade
+	# when the arm reports a real positive obstruction distance.
 	if hit_length > 0.0 and fade_at > hide_at and hit_length < fade_at:
 		transparency = clampf(
 			inverse_lerp(fade_at, hide_at, hit_length), 0.0, 1.0
