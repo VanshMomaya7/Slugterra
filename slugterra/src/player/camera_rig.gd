@@ -109,6 +109,7 @@ func set_profile(id: StringName, blend_seconds := -1.0) -> void:
 	if duration <= 0.0:
 		_blend_t = 1.0
 		_blend_speed = 0.0
+		_live = target.duplicate() as CameraProfile
 	else:
 		_blend_t = 0.0
 		_blend_speed = 1.0 / duration
@@ -234,7 +235,7 @@ func _update_occlusion_fade() -> void:
 	var hide_at := _live.occlusion_hide_distance
 
 	var transparency := 0.0
-	if fade_at > hide_at and hit_length < fade_at:
+	if spring_arm.is_colliding() and fade_at > hide_at and hit_length < fade_at:
 		transparency = clampf(
 			inverse_lerp(fade_at, hide_at, hit_length), 0.0, 1.0
 		)

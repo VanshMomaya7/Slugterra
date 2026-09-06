@@ -196,7 +196,9 @@ func _try_launch(report: Dictionary) -> Dictionary:
 		return {"accepted": false, "reason": &"launcher_missing"}
 
 	var instance: Object = _active_instance()
-	if instance == null and not allow_dry_fire:
+	if instance == null:
+		if allow_dry_fire:
+			return {"accepted": true, "reason": &"dry_fire", "dry_fire": true}
 		return {"accepted": false, "reason": &"no_slug"}
 
 	var request: Object = _request_script.new()
