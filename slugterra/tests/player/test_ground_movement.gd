@@ -211,23 +211,62 @@ func test_releasing_jump_early_cuts_the_rise(timeout := 10000) -> void:
 
 func test_jump_buffer_fires_on_landing(timeout := 10000) -> void:
 	_add_floor()
-	_body.global_position = Vector3(0, 3.0, 0)
+	_body.global_position = Vector3(0, 1.2, 0)
 
-	# Press jump while still falling, well inside the buffer window.
-	var pressed := false
+	# Fall until coyote time has definitely expired, so this proves the buffer
+	# and not the coyote window, and until touchdown is close enough to land
+	# inside the buffer.
+	var airborne_frames := 0
 	for i in 120:
-		var close_to_ground := _body.global_position.y < 1.15
-		_intent.jump_pressed = close_to_ground and not pressed
-		_intent.jump_held = pressed or close_to_ground
-		if _intent.jump_pressed:
-			pressed = true
 		_step()
 		await get_tree().physics_frame
-		if pressed and _body.velocity.y > 0.1:
+		airborne_frames += 1
+		var airborne_seconds := airborne_frames * STEP
+		if airborne_seconds > _config.coyote_time + 0.05 and _body.global_position.y < 0.25:
 			break
 
-	assert_bool(pressed).is_true()
-	assert_float(_body.velocity.y).is_greater(0.0)
+	assert_bool(_body.is_on_floor()).is_false()
+	assert_float(_body.velocity.y).is_less(0.0)
+
+	# One press, mid-air, with coyote already gone: it must not fire now.
+	_intent.jump_pressed = true
+	_intent.jump_held = true
+	_step()
+	assert_float(_body.velocity.y).is_less(0.0)
+	_intent.jump_pressed = false
+
+	# It must fire by itself on touchdown.
+	var launched := false
+	for i in 10:
+		await get_tree().physics_frame
+		_step()
+		if _body.velocity.y > 0.1:
+			launched = true
+			break
+
+	assert_bool(launched).is_true()
+	assert_float(_body.velocity.y).is_equal_approx(_config.jump_velocity, 0.2)
+
+
+func test_expired_jump_buffer_does_not_fire_on_landing(timeout := 10000) -> void:
+	_add_floor()
+	_body.global_position = Vector3(0, 6.0, 0)
+
+	# Press once at the top of a long fall; the buffer must lapse before landing.
+	_intent.jump_pressed = true
+	_intent.jump_held = true
+	_step()
+	_intent.jump_pressed = false
+	_intent.jump_held = false
+
+	for i in 180:
+		_step()
+		await get_tree().physics_frame
+		if _body.is_on_floor():
+			break
+
+	assert_bool(_body.is_on_floor()).is_true()
+	assert_float(_body.velocity.y).is_less_equal(0.0)
 
 
 # --- State reporting -------------------------------------------------------
