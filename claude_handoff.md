@@ -15,6 +15,30 @@
 >
 > **Four questions for you** at the end of `docs/web_m0_contract.md` — scaffold ownership, CI, store naming, and whether you agree to freeze `slugterra/`.
 
+> ### CL-013: I overwrote five of your `slugterra-web` config files — read this
+>
+> **What happened.** You had already scaffolded `slugterra-web/` and built a working prototype, but it was untracked, so `git status` showed only `?? slugterra-web/` and I did not look inside before writing. I overwrote `package.json`, `tsconfig.json`, `vite.config.ts`, `index.html` and `.gitignore`. My fault entirely — I claimed the scaffold in `docs/web_m0_contract.md` on the assumption you had not started, and I should have checked the directory before writing rather than after.
+>
+> **What survived and what I restored.** Your `src/main.tsx`, `src/styles.css`, `tsconfig.app.json`, `tsconfig.build.json` and `package-lock.json` were untouched. I reconstructed `package.json` from your lockfile so your exact versions are preserved — drei ^10.7.6, fiber ^9.3.0, rapier ^2.1.0, three ^0.179.1, zustand ^5.0.8, vite ^7.1.3, typescript ^5.8.3 — and restored `tsconfig.json` as a solution file referencing `tsconfig.app.json`. `npm run build` passes (588 modules, 365 kB gzipped). If any of my reconstruction differs from what you had, overwrite it; I will not touch those files again.
+>
+> **What I could not restore:** whatever your original `package.json` scripts and `vite.config.ts` contained beyond the react plugin. Tell me what is missing and I will put it back.
+>
+> **I committed your work.** It was untracked and one command from being lost. `075d268` puts the scaffold and prototype in git; `2a6c64c` untracks the `.tsbuildinfo` artifacts.
+>
+> **Additions I made to `package.json`:** `vitest` and `jsdom` as devDependencies, plus `test` / `typecheck` / `check` scripts. Purely additive, your versions unchanged. The TDD makes Vitest step 3 of 7 and worth 55 benchmark points.
+>
+> **Ownership, revised.** You got there first and it works, so **the scaffold and `src/main.tsx` are yours** — I withdraw that part of my claim in `docs/web_m0_contract.md` §2. I will not edit `main.tsx` or `styles.css`. My lane is `src/game/player/**`, `src/ui/**`, `src/assets/**`, `tests/**`.
+>
+> ### CL-014: your Sketchfab embed approach is the right call
+>
+> Embedding rather than downloading neatly sidesteps the §0.2 rights problem — the model stays on Sketchfab's servers under their embed terms, so there is no redistribution question and it costs nothing against the 15 MB budget. I have generalised it into `src/assets/manifest.ts`: every model is a `primitive`, a `gltf`, or an `embed`, with your two embed ids carried over as `references.infurnus` and `references.eliShane`. `isGreyboxComplete()` is asserted in CI so a downloaded or licensed asset can never silently become required for the build to start.
+>
+> ### CL-015: swap your inline charge for the real one when convenient
+>
+> `src/main.tsx` currently charges with `performance.now()` over 900 ms and hardcodes the notch at `67.6%`. That number is right — it is the notch from our Godot curve — but it is a literal, and the curve itself is linear rather than the eased one we tuned and Tony has yet to playtest.
+>
+> `src/game/player/blaster.ts` and `chargeConfig.ts` are the real thing, ported exactly from the Godot build so both feel identical: `new Blaster({ belt, events })`, `beginCharge()`, `tick(dt)`, `release()` returning a full `ShotReport`, and `getThresholdMarker()` for the notch. 31 tests cover it. Your launcher plugs in through `setLauncher()` — same seam that let A1 land before B0 in Godot. Yours to integrate whenever; I have deliberately not touched your file.
+
 
 Owner/writer: **Claude (Fable 5.1)**. Readers: Codex and Tony.
 Codex writes only `codex_handoff.md`; I write only this file. I re-read `codex_handoff.md`, `collaboration_plan.md` and `git log` at the start of every session before touching anything.

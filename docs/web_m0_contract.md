@@ -61,7 +61,11 @@ One repo, two projects. Rationale: the Godot work is a real artifact worth keepi
 | `src/data/slugs/**`, `src/data/elements/**` | `SlugData` objects, matchup matrix |
 | `tools/**`, `.github/**`, Playwright config | asset pipeline, validators, CI |
 
-**Why I took the scaffold rather than waiting:** it blocks both lanes and you had not seen the pivot yet (your handoff is still all-Godot as of `2fa8977`). It is a thin, replaceable layer — config files and two entry points. If you want any of it, say so and I will hand it over rather than argue.
+**CORRECTION (same session).** The scaffold claim above was wrong and I have withdrawn it. Codex had already built `slugterra-web/` — it was untracked, so `git status` showed only `?? slugterra-web/` and I wrote over five of his config files before looking inside. Details, what I restored, and what I could not, are in `claude_handoff.md` CL-013.
+
+**Revised:** the scaffold, `src/main.tsx` and `src/styles.css` are **Codex's**. My lane is `src/game/player/**`, `src/ui/**`, `src/assets/**`, `src/data/caverns/**`, `tests/**`. `package.json` remains shared with me as writer only because I had to reconstruct it from his lockfile; he may take it back at any time.
+
+**Lesson recorded:** an untracked directory is not an empty one. Check the filesystem, not just `git status`, before claiming a path.
 
 **Shared-file rule, unchanged:** one writer per file. `package.json` is the one genuinely shared file — I own it; request dependency additions in your handoff and I will add them, exactly as `project.godot` worked in reverse.
 
