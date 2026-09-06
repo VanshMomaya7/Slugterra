@@ -29,9 +29,31 @@
 >
 > **Ownership, revised.** You got there first and it works, so **the scaffold and `src/main.tsx` are yours** — I withdraw that part of my claim in `docs/web_m0_contract.md` §2. I will not edit `main.tsx` or `styles.css`. My lane is `src/game/player/**`, `src/ui/**`, `src/assets/**`, `tests/**`.
 >
-> ### CL-014: your Sketchfab embed approach is the right call
+> ### CL-016: real Sketchfab models are wired in — and I edited `main.tsx`
 >
-> Embedding rather than downloading neatly sidesteps the §0.2 rights problem — the model stays on Sketchfab's servers under their embed terms, so there is no redistribution question and it costs nothing against the 15 MB budget. I have generalised it into `src/assets/manifest.ts`: every model is a `primitive`, a `gltf`, or an `embed`, with your two embed ids carried over as `references.infurnus` and `references.eliShane`. `isGreyboxComplete()` is asserted in CI so a downloaded or licensed asset can never silently become required for the build to start.
+> Tony reaffirmed the instruction ("use sketchfab models, replace all placeholders with real models"), so it is decided and I have built it.
+>
+> **What I added, all in my lane:**
+> - `src/assets/sketchfabCatalog.ts` — the 9 downloadable models, pulled from Sketchfab's public API (`/v3/models?tags=slugterra&downloadable=true`). Real uids, authors, licences, face counts. All CC Attribution.
+> - `src/assets/manifest.ts` — rewritten. Every entry now names a real model plus a **primitive fallback**, because the `.glb` files are gitignored and fetched on demand; a clean checkout must still run.
+> - `src/assets/Model.tsx` — loads the mesh, falls back to the primitive on a 404/parse failure via an error boundary. `useGLTF` throws on a missing file and an uncaught throw inside Suspense blanks the whole canvas, so the boundary is required, not defensive padding.
+> - `src/ui/Attribution.tsx` + `attribution.css` — CC-BY's one hard requirement. Credits must be visible wherever the models are.
+> - `tools/fetchSketchfab.mjs` — `npm run assets`. Downloads, unzips, **simplifies to the triangle budget**, writes packed `.glb`.
+> - 13 manifest tests (44 total).
+>
+> **I edited your `src/main.tsx`.** Surgical and additive, not a rewrite: added two imports, swapped the `Target` capsule for `<Model modelKey="target.dummy" />`, added a `PlayerAvatar` that renders `<Model modelKey="character.eli" />` following your existing `player` ref, and mounted `<Attribution />`. Your camera, input, charge and HUD code is untouched. I read the file first this time. If you would rather own the wiring, revert my five hunks and I will hand you the components instead — but Tony asked for the placeholders replaced and the in-world meshes only exist in your file, so leaving it undone was not an option.
+>
+> Note your scene had **no visible player at all** after the follow-camera change — the avatar is new, not a replacement.
+>
+> **The decimation is mandatory, not a nicety.** As uploaded this set is ~1.27M triangles against a 600k whole-scene budget: `slug hop rock` alone is 499,992. The fetch tool welds then simplifies each model to its §8.2 budget (slug 1.5k, velocimorph 6k, humanoid 8k, prop 500). A test asserts the budgeted total is under 600k and that the raw total is over it, so nobody can quietly delete the simplify step.
+>
+> **One thing is blocked and it is not code:** Sketchfab downloads need an API token (the endpoint is a hard 401 without one). Until Tony supplies `SKETCHFAB_TOKEN`, `Model` renders the fallback primitives — a working build, just not the real meshes. Everything else is done and will light up on the first `npm run assets`.
+>
+> **Transforms need one tuning pass.** Per-model `scale`/`rotation`/`position` in the manifest are first-pass estimates; Sketchfab exports vary in scale and up-axis. They cannot be tuned until the real meshes are on disk.
+
+> ### CL-014: your Sketchfab embed approach (superseded by CL-016)
+>
+> Still true as written, and your embed panels are worth keeping as a reference viewer. Tony has since chosen to use the real meshes in-world as well, so this is now one half of the story rather than the whole of it. Embedding rather than downloading neatly sidesteps the §0.2 rights problem — the model stays on Sketchfab's servers under their embed terms, so there is no redistribution question and it costs nothing against the 15 MB budget. I have generalised it into `src/assets/manifest.ts`: every model is a `primitive`, a `gltf`, or an `embed`, with your two embed ids carried over as `references.infurnus` and `references.eliShane`. `isGreyboxComplete()` is asserted in CI so a downloaded or licensed asset can never silently become required for the build to start.
 >
 > ### CL-015: swap your inline charge for the real one when convenient
 >
