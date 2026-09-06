@@ -35,8 +35,10 @@ const MIN_CONVERGENCE := 1.5
 @export var aim_profile: CameraProfile
 @export var duel_profile: CameraProfile
 
-## The player mesh root, faded by the soft occlusion pass. Optional.
-@export var visual_root: Node3D
+## Path to the player mesh root faded by the soft occlusion pass, relative to
+## this node. Optional. A NodePath for the same reason as Blaster.muzzle_path:
+## hand-authored Node-typed exports resolve to null outside the editor.
+@export var visual_root_path: NodePath
 
 ## Invert vertical mouse look.
 @export var invert_y := false
@@ -44,6 +46,9 @@ const MIN_CONVERGENCE := 1.5
 @onready var pivot: Node3D = $Pivot
 @onready var spring_arm: SpringArm3D = $Pivot/SpringArm3D
 @onready var camera: Camera3D = $Pivot/SpringArm3D/Camera3D
+
+## Resolved from [member visual_root_path], or assigned directly in code.
+var visual_root: Node3D
 
 var _profiles: Dictionary = {}
 var _current_id: StringName = PROFILE_EXPLORE
@@ -73,6 +78,10 @@ func _ready() -> void:
 	spring_arm.collision_mask = SPRING_MASK
 	spring_arm.spring_length = _live.arm_length
 
+	if visual_root == null and not visual_root_path.is_empty():
+		visual_root = get_node_or_null(visual_root_path) as Node3D
+		if visual_root == null:
+			push_warning("CameraRig: visual_root_path '%s' did not resolve; occlusion fade is off." % visual_root_path)
 	if visual_root != null:
 		_collect_fadeable(visual_root)
 
@@ -235,7 +244,10 @@ func _update_occlusion_fade() -> void:
 	var hide_at := _live.occlusion_hide_distance
 
 	var transparency := 0.0
-	if spring_arm.is_colliding() and fade_at > hide_at and hit_length < fade_at:
+	# Godot 4.7 exposes hit length but no is_colliding() helper. A zero hit
+	# length is the clear-arm sentinel; only fade when the arm reports a real
+	# positive obstruction distance.
+	if hit_length > 0.0 and fade_at > hide_at and hit_length < fade_at:
 		transparency = clampf(
 			inverse_lerp(fade_at, hide_at, hit_length), 0.0, 1.0
 		)
