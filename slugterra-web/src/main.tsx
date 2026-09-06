@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Grid, Sparkles, Text } from "@react-three/drei";
 import * as THREE from "three";
+import { Model } from "./assets/Model";
+import { Attribution } from "./ui/Attribution";
 import "./styles.css";
 
 type Shot = { id: number; t: number; transformed: boolean; origin: THREE.Vector3 };
@@ -21,9 +23,17 @@ function LiveModel({ title, src, credit }: { title: string; src: string; credit:
 
 function Target({ damaged }: { damaged: boolean }) {
   return <group position={[0, 1.4, -10]}>
-    <mesh castShadow><capsuleGeometry args={[0.65, 1.5, 8, 16]} /><meshStandardMaterial color={damaged ? "#6b2830" : "#b54843"} emissive={damaged ? "#26090c" : "#431014"} emissiveIntensity={0.8} /></mesh>
+    <Model modelKey="target.dummy" {...(damaged ? { tint: "#6b2830" } : {})} />
     <mesh position={[0, 1.15, 0.12]}><ringGeometry args={[0.18, 0.27, 16]} /><meshBasicMaterial color={damaged ? "#5c6b70" : "#ffcf79"} /></mesh>
   </group>;
+}
+
+function PlayerAvatar({ positionRef }: { positionRef: React.RefObject<THREE.Vector3> }) {
+  const group = React.useRef<THREE.Group>(null);
+  // Follows the authoritative position ref rather than React state, so the
+  // avatar never triggers a re-render at 60 Hz.
+  useFrame(() => { if (group.current) group.current.position.copy(positionRef.current); });
+  return <group ref={group}><Model modelKey="character.eli" /></group>;
 }
 
 function Arena({ charging, damaged, onPosition }: { charging: boolean; damaged: boolean; onPosition: (p: THREE.Vector3, yaw: number) => void }) {
@@ -48,6 +58,7 @@ function Arena({ charging, damaged, onPosition }: { charging: boolean; damaged: 
     <Grid args={[40, 40]} cellSize={2} cellThickness={0.35} cellColor="#23515d" sectionSize={10} sectionColor="#467f86" position={[0, 0.01, 0]} />
     {[-14, -7, 7, 14].map((x) => <mesh key={x} position={[x, 2, -10]} castShadow><cylinderGeometry args={[1.5, 2.4, 7, 8]} /><meshStandardMaterial color="#263b40" roughness={0.95} /></mesh>)}
     <Sparkles count={120} scale={[36, 8, 36]} size={2} speed={0.25} color="#61d7dd" />
+    <PlayerAvatar positionRef={player} />
     <Target damaged={damaged} />
     <Text position={[0, 3.2, -12]} fontSize={0.65} color="#f2bc68" anchorX="center">QUIET LAWN // TRAINING CAVERN</Text>
     {charging && <Sparkles count={24} position={[0, 1.3, 3]} scale={1.4} color="#ff9d31" />}
@@ -67,6 +78,7 @@ function App() {
     <header className="hud top"><div><span className="eyebrow">SLUGTERRA // WEB BUILD</span><h1>Quiet Lawn</h1></div><button className="model-button" onClick={() => setEmbed(embed === null ? 0 : null)}>Sketchfab models</button></header>
     <section className="hud bottom"><div className="instructions"><b>WASD</b> move <span>•</span> <b>Orbit</b> look <span>•</span> Hold <b>Space</b> to charge</div><div className="meter"><div className="meter-label"><span>INFURNUS // BURPY</span><strong>{Math.round(charge * 139)} MPH</strong></div><div className="track"><i style={{ width: `${charge * 100}%` }} /><em style={{ left: "67.6%" }} /></div><small>{shot ? (shot.transformed ? "VELOCIMORPH // HIT THE NOTCH" : "DUD // TOO SLOW") : "100 MPH transforms the slug"}</small></div></section>
     {embed !== null && <aside className="model-drawer"><div className="drawer-head"><div><span className="eyebrow">WEB-NATIVE REFERENCE</span><h2>{EMBEDS[embed].label}</h2></div><button onClick={() => setEmbed(null)} aria-label="Close model viewer">×</button></div><iframe title={EMBEDS[embed].label} src={EMBEDS[embed].src} allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen /><div className="drawer-tabs">{EMBEDS.map((m, i) => <button className={i === embed ? "active" : ""} key={m.label} onClick={() => setEmbed(i)}>{m.label}</button>)}</div></aside>}
+    <Attribution />
   </main>;
 }
 
