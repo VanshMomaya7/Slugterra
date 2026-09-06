@@ -23,24 +23,37 @@ const SCENES := [
 ]
 
 var _failures: PackedStringArray = []
+var _frame := 0
+var _player: Node
 
 
+## Exported Node references (Blaster.muzzle, CameraRig.visual_root) only resolve
+## once the node is actually inside the tree, and `_initialize` runs before the
+## tree is live. So the scene is spawned here and inspected a frame later.
 func _initialize() -> void:
 	print("=== player scene load check ===")
 	_check_resources()
 	_check_scenes()
 	_check_charge_math()
+	_spawn_player()
+
+
+func _process(_delta: float) -> bool:
+	_frame += 1
+	if _frame < 2:
+		return false
+
 	_check_player_wiring()
 
 	print("")
 	if _failures.is_empty():
 		print("PASS - all player scenes, resources and charge maths are sound.")
-		quit(0)
 	else:
 		printerr("FAIL - %d problem(s):" % _failures.size())
 		for failure in _failures:
 			printerr("  - " + failure)
-		quit(1)
+	quit(0 if _failures.is_empty() else 1)
+	return true
 
 
 func _fail(message: String) -> void:
@@ -128,15 +141,20 @@ func _check_charge_math() -> void:
 
 ## Catches the classic hand-authored-scene failure: the file parses, but an
 ## exported reference resolved to null and nothing works at runtime.
-func _check_player_wiring() -> void:
-	print("- player wiring")
+func _spawn_player() -> void:
 	var packed := load("res://scenes/prefabs/player/player.tscn") as PackedScene
 	if packed == null:
 		_fail("player.tscn missing")
 		return
+	_player = packed.instantiate()
+	root.add_child(_player)
 
-	var player := packed.instantiate()
-	root.add_child(player)
+
+func _check_player_wiring() -> void:
+	print("- player wiring")
+	var player := _player
+	if player == null:
+		return
 
 	var controller := player as CharacterBody3D
 	if controller == null:
@@ -199,4 +217,3 @@ func _check_player_wiring() -> void:
 			_ok("dry-fire release ok (reason=%s, %.1f m/s)"
 				% [str(report.get("reason")), float(report.get("speed_mps"))])
 
-	player.queue_free()
