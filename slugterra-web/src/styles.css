@@ -14,6 +14,11 @@ h2 { font-size: 32px; }
 button { border: 1px solid #41757b; color: #edf8f4; background: #10242a; font: inherit; cursor: pointer; }
 button:hover { background: #194149; border-color: #72ddd5; }
 .model-button { pointer-events: auto; padding: 13px 18px; margin-top: 6px; text-transform: uppercase; font-size: 11px; letter-spacing: .1em; }
+.live-models { position: absolute; z-index: 2; top: clamp(118px, 16vh, 170px); right: clamp(20px, 4vw, 60px); width: min(270px, 29vw); display: grid; gap: 12px; pointer-events: auto; }
+.live-model { margin: 0; overflow: hidden; border: 1px solid #37656a; background: #071116e8; box-shadow: 0 12px 35px #0009; }
+.live-model-title { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; padding: 9px 10px; color: #edf8f4; font-size: 10px; letter-spacing: .04em; text-transform: uppercase; }
+.live-model-title small { color: #74e1da; font-size: 8px; white-space: nowrap; }
+.live-model iframe { display: block; width: 100%; height: 178px; border: 0; }
 .bottom { bottom: 28px; display: grid; gap: 13px; }
 .instructions { font-size: 12px; color: #b7d2cf; text-shadow: 0 2px 10px #000; }
 .instructions b { color: #fff2c3; }
@@ -32,4 +37,5 @@ button:hover { background: #194149; border-color: #72ddd5; }
 .drawer-tabs { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #23444a; }
 .drawer-tabs button { padding: 9px 12px; font-size: 11px; }
 .drawer-tabs .active { color: #071016; background: #73dfd6; border-color: #73dfd6; }
-@media (max-width: 650px) { .model-drawer { inset: 2vh 2vw; } .instructions { font-size: 10px; } .meter { width: 90vw; } }
+@media (max-width: 800px) { .live-models { top: auto; bottom: 168px; right: 20px; width: 220px; } .live-model iframe { height: 130px; } }
+@media (max-width: 650px) { .model-drawer { inset: 2vh 2vw; } .live-models { display: none; } .instructions { font-size: 10px; } .meter { width: 90vw; } }

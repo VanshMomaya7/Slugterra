@@ -12,24 +12,11 @@ const EMBEDS = [
   { label: "Eli Shane reference", src: "https://sketchfab.com/models/f273b2800f644db4832093eb6336429f/embed?autostart=1&ui_theme=dark" },
 ];
 
-function Player({ position, yaw }: { position: React.MutableRefObject<THREE.Vector3>; yaw: React.MutableRefObject<number> }) {
-  const ref = React.useRef<THREE.Group>(null);
-  useFrame(() => { if (ref.current) { ref.current.position.copy(position.current); ref.current.rotation.y = yaw.current; } });
-  return <group ref={ref}>
-    <mesh position={[0, 1, 0]} castShadow><capsuleGeometry args={[0.38, 1.1, 8, 16]} /><meshStandardMaterial color="#d88a42" roughness={0.55} /></mesh>
-    <mesh position={[0.28, 1.15, -0.22]} rotation-y={-0.15} castShadow><boxGeometry args={[0.12, 0.15, 0.48]} /><meshStandardMaterial color="#f2b344" emissive="#6f2d06" emissiveIntensity={0.5} /></mesh>
-    <mesh position={[0, 1.55, 0]} castShadow><sphereGeometry args={[0.16, 12, 8]} /><meshStandardMaterial color="#1b2630" /></mesh>
-  </group>;
-}
-
-function FireSlug({ shot }: { shot: Shot }) {
-  const ref = React.useRef<THREE.Group>(null);
-  const age = React.useRef(0);
-  useFrame((_, delta) => { if (ref.current) { age.current += delta; ref.current.position.z -= delta * (shot.transformed ? 16 : 8); ref.current.rotation.x += delta * 8; } });
-  return <group ref={ref} position={[shot.origin.x + 0.28, shot.origin.y + 1.35, shot.origin.z - 1]}>
-    <mesh castShadow><sphereGeometry args={[shot.transformed ? 0.35 : 0.22, 16, 10]} /><meshStandardMaterial color={shot.transformed ? "#ff7b0a" : "#e63217"} emissive="#ff3700" emissiveIntensity={shot.transformed ? 2.2 : 0.7} /></mesh>
-    <mesh position={[0, 0.16, -0.18]}><sphereGeometry args={[0.08, 10, 6]} /><meshStandardMaterial color="#ffd24a" emissive="#ff8e00" emissiveIntensity={1.5} /></mesh>
-  </group>;
+function LiveModel({ title, src, credit }: { title: string; src: string; credit: string }) {
+  return <article className="live-model">
+    <div className="live-model-title"><span>{title}</span><small>{credit}</small></div>
+    <iframe title={title} src={src} allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen />
+  </article>;
 }
 
 function Target({ damaged }: { damaged: boolean }) {
@@ -39,7 +26,7 @@ function Target({ damaged }: { damaged: boolean }) {
   </group>;
 }
 
-function Arena({ charging, shot, damaged, onPosition }: { charging: boolean; shot: Shot | null; damaged: boolean; onPosition: (p: THREE.Vector3, yaw: number) => void }) {
+function Arena({ charging, damaged, onPosition }: { charging: boolean; damaged: boolean; onPosition: (p: THREE.Vector3, yaw: number) => void }) {
   const player = React.useRef(new THREE.Vector3(0, 0, 4));
   const yaw = React.useRef(0);
   const keys = React.useRef<Record<string, boolean>>({});
@@ -61,11 +48,9 @@ function Arena({ charging, shot, damaged, onPosition }: { charging: boolean; sho
     <Grid args={[40, 40]} cellSize={2} cellThickness={0.35} cellColor="#23515d" sectionSize={10} sectionColor="#467f86" position={[0, 0.01, 0]} />
     {[-14, -7, 7, 14].map((x) => <mesh key={x} position={[x, 2, -10]} castShadow><cylinderGeometry args={[1.5, 2.4, 7, 8]} /><meshStandardMaterial color="#263b40" roughness={0.95} /></mesh>)}
     <Sparkles count={120} scale={[36, 8, 36]} size={2} speed={0.25} color="#61d7dd" />
-    <Player position={player} yaw={yaw} />
     <Target damaged={damaged} />
     <Text position={[0, 3.2, -12]} fontSize={0.65} color="#f2bc68" anchorX="center">QUIET LAWN // TRAINING CAVERN</Text>
     {charging && <Sparkles count={24} position={[0, 1.3, 3]} scale={1.4} color="#ff9d31" />}
-    {shot && <FireSlug shot={shot} />}
   </>;
 }
 
@@ -74,7 +59,11 @@ function App() {
   React.useEffect(() => { const down = (e: KeyboardEvent) => { if (e.code === "Space" && !charging) { setCharging(true); started.current = performance.now(); } }; const up = (e: KeyboardEvent) => { if (e.code === "Space" && charging) { const c = Math.min(1, (performance.now() - started.current) / 900); setCharging(false); setCharge(c); const origin = playerPosition.current.clone(); setShot({ id: Date.now(), t: c, origin, transformed: c >= 0.676 }); if (c >= 0.676) { setDamaged(true); window.setTimeout(() => setDamaged(false), 1600); } window.setTimeout(() => setShot(null), 1600); } }; window.addEventListener("keydown", down); window.addEventListener("keyup", up); return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); }; }, [charging]);
   React.useEffect(() => { if (!charging) return; const timer = window.setInterval(() => setCharge(Math.min(1, (performance.now() - started.current) / 900)), 30); return () => window.clearInterval(timer); }, [charging]);
   return <main className="game-shell">
-    <Canvas shadows camera={{ position: [0, 3.8, 11], fov: 58 }}><Arena charging={charging} shot={shot} damaged={damaged} onPosition={(p) => playerPosition.current.copy(p)} /></Canvas>
+    <Canvas shadows camera={{ position: [0, 3.8, 11], fov: 58 }}><Arena charging={charging} damaged={damaged} onPosition={(p) => playerPosition.current.copy(p)} /></Canvas>
+    <section className="live-models" aria-label="Live Sketchfab models used by this web build">
+      <LiveModel title="Eli Shane // player model" credit="nayzen · Sketchfab" src="https://sketchfab.com/models/f273b2800f644db4832093eb6336429f/embed?autostart=1&ui_theme=dark" />
+      <LiveModel title={shot?.transformed ? "Infurnus Velocimorph // live shot" : "Infurnus // equipped slug"} credit="DanSword · Sketchfab" src={`https://sketchfab.com/models/${shot?.transformed ? "4d7d2c1829f84d47b644009921482499" : "ded8e71aaaf94bc4a5be48a81911ac3c"}/embed?autostart=1&ui_theme=dark`} />
+    </section>
     <header className="hud top"><div><span className="eyebrow">SLUGTERRA // WEB BUILD</span><h1>Quiet Lawn</h1></div><button className="model-button" onClick={() => setEmbed(embed === null ? 0 : null)}>Sketchfab models</button></header>
     <section className="hud bottom"><div className="instructions"><b>WASD</b> move <span>•</span> <b>Orbit</b> look <span>•</span> Hold <b>Space</b> to charge</div><div className="meter"><div className="meter-label"><span>INFURNUS // BURPY</span><strong>{Math.round(charge * 139)} MPH</strong></div><div className="track"><i style={{ width: `${charge * 100}%` }} /><em style={{ left: "67.6%" }} /></div><small>{shot ? (shot.transformed ? "VELOCIMORPH // HIT THE NOTCH" : "DUD // TOO SLOW") : "100 MPH transforms the slug"}</small></div></section>
     {embed !== null && <aside className="model-drawer"><div className="drawer-head"><div><span className="eyebrow">WEB-NATIVE REFERENCE</span><h2>{EMBEDS[embed].label}</h2></div><button onClick={() => setEmbed(null)} aria-label="Close model viewer">×</button></div><iframe title={EMBEDS[embed].label} src={EMBEDS[embed].src} allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen /><div className="drawer-tabs">{EMBEDS.map((m, i) => <button className={i === embed ? "active" : ""} key={m.label} onClick={() => setEmbed(i)}>{m.label}</button>)}</div></aside>}
