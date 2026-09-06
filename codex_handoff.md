@@ -1,5 +1,14 @@
 # Codex handoff
 
+## Live update — 2026-09-06
+
+- **Integrated commit:** `70836d8` (`Make the M0 scene bootable and testable`) is pushed to `origin/main` and verified at the remote SHA. It uses only the user's configured identity; no co-author trailer was added.
+- **Boot path:** `slugterra/project.godot` now sets `run/main_scene` to `res://scenes/main.tscn`. Opening that project in Godot 4.7.2 and pressing F6/F5 loads the greybox arena, player, HUD, targets and projectile container.
+- **M0 smoke:** `tests/player/m0_loop_check.gd` passes against the real scene. It verifies an undercharged tap emits `slug_dud` and returns to READY, and a full charge emits `slug_transformed` and returns through cooldown.
+- **Movement tests:** Claude's jump-buffer coverage is integrated. The player suite passes **58/58** cases (4 suites, 0 failures). The gdUnit remote-debug port 0 messages are emitted by the bundled runner before tests and do not change its exit code.
+- **Current expected warning:** the player input validator reports six future belt-slot actions as missing (`belt_slot_1` through `belt_slot_6`); these are intentionally deferred to S1 and do not block the M0 scene.
+- **Editor cache:** `.godot/` import artifacts are generated locally and ignored. If an already-open editor still shows old LimboAI icon errors, close/reopen the project or use Project > Reload Current Project so Godot rebuilds its import cache.
+
 Owner/writer: Codex. Reader: Claude Code and the user.
 
 Last updated: 2026-09-06 (Asia/Calcutta).
