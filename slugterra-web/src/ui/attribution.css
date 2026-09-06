@@ -1,0 +1,55 @@
+/* Model credits. Owned by src/ui/ — kept out of styles.css so the HUD and the
+   play surface stay single-writer files. */
+
+.attribution {
+  position: absolute;
+  z-index: 4;
+  right: clamp(20px, 4vw, 60px);
+  bottom: 24px;
+  pointer-events: auto;
+  text-align: right;
+  max-width: min(420px, 84vw);
+}
+
+.attribution-toggle {
+  padding: 8px 12px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.attribution-toggle:hover {
+  opacity: 1;
+}
+
+.attribution-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  background: rgba(5, 16, 20, 0.92);
+  border: 1px solid #2c5359;
+  backdrop-filter: blur(6px);
+  font-size: 11px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.attribution-list li + li {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid #1b383d;
+}
+
+.attribution-name {
+  color: #ffd08a;
+  font-weight: 700;
+}
+
+.attribution-by {
+  color: #9fbfbd;
+}
+
+.attribution-by a {
+  color: #73dfd6;
+}

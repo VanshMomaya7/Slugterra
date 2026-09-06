@@ -12,3 +12,8 @@ playwright-report/
 # playable with this folder absent.
 public/assets/licensed/
 *.tsbuildinfo
+
+# Fetched Sketchfab models - regenerate with `npm run assets`
+public/assets/sketchfab/
+.asset-cache/
+.env.local
