@@ -1,19 +1,79 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=9 format=3]
 
-[sub_resource type="StandardMaterial3D" id="FireMaterial"]
-albedo_color = Color(1, 0.5, 0.02, 1)
+[sub_resource type="StandardMaterial3D" id="BodyMaterial"]
+albedo_color = Color(1, 0.3, 0.015, 1)
+emission_enabled = true
+emission = Color(1, 0.08, 0.005, 1)
+emission_energy_multiplier = 2.5
+roughness = 0.28
+
+[sub_resource type="StandardMaterial3D" id="FlameMaterial"]
+albedo_color = Color(1, 0.78, 0.04, 1)
 emission_enabled = true
 emission = Color(1, 0.22, 0.01, 1)
-emission_energy_multiplier = 3.0
+emission_energy_multiplier = 4.0
 
-[sub_resource type="SphereMesh" id="Sphere"]
-material = SubResource("FireMaterial")
-radius = 0.36
-height = 0.72
+[sub_resource type="StandardMaterial3D" id="EyeMaterial"]
+albedo_color = Color(0.02, 0.004, 0.001, 1)
+
+[sub_resource type="SphereMesh" id="Body"]
+material = SubResource("BodyMaterial")
+radius = 0.32
+height = 0.92
+radial_segments = 20
+rings = 10
+
+[sub_resource type="SphereMesh" id="Head"]
+material = SubResource("BodyMaterial")
+radius = 0.27
+height = 0.48
+radial_segments = 18
+rings = 8
+
+[sub_resource type="CylinderMesh" id="Flame"]
+material = SubResource("FlameMaterial")
+top_radius = 0.02
+bottom_radius = 0.17
+height = 0.48
 radial_segments = 12
-rings = 6
 
-[node name="Velocimorph" type="Node3D"]
+[sub_resource type="SphereMesh" id="Eye"]
+material = SubResource("EyeMaterial")
+radius = 0.06
+height = 0.12
+radial_segments = 10
+rings = 5
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
-mesh = SubResource("Sphere")
+[node name="InfurnusVelocimorph" type="Node3D"]
+
+[node name="Body" type="MeshInstance3D" parent="."]
+rotation_degrees = Vector3(90, 0, 0)
+mesh = SubResource("Body")
+
+[node name="Head" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0, -0.35)
+rotation_degrees = Vector3(90, 0, 0)
+mesh = SubResource("Head")
+
+[node name="FlameL" type="MeshInstance3D" parent="."]
+position = Vector3(-0.2, 0, 0.35)
+rotation_degrees = Vector3(90, 0, 22)
+mesh = SubResource("Flame")
+
+[node name="FlameR" type="MeshInstance3D" parent="."]
+position = Vector3(0.2, 0, 0.35)
+rotation_degrees = Vector3(90, 0, -22)
+mesh = SubResource("Flame")
+
+[node name="FlameTop" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, 0.25)
+rotation_degrees = Vector3(55, 0, 0)
+mesh = SubResource("Flame")
+
+[node name="EyeL" type="MeshInstance3D" parent="."]
+position = Vector3(-0.13, 0.2, -0.45)
+mesh = SubResource("Eye")
+
+[node name="EyeR" type="MeshInstance3D" parent="."]
+position = Vector3(0.13, 0.2, -0.45)
+mesh = SubResource("Eye")

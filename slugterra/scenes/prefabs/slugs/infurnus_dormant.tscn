@@ -1,19 +1,100 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=12 format=3]
 
-[sub_resource type="StandardMaterial3D" id="FireMaterial"]
-albedo_color = Color(1, 0.22, 0.05, 1)
-emission_enabled = true
-emission = Color(1, 0.08, 0.01, 1)
-emission_energy_multiplier = 0.7
+[sub_resource type="StandardMaterial3D" id="BodyMaterial"]
+albedo_color = Color(0.92, 0.19, 0.035, 1)
+roughness = 0.38
 
-[sub_resource type="SphereMesh" id="Sphere"]
-material = SubResource("FireMaterial")
-radius = 0.14
-height = 0.28
-radial_segments = 12
+[sub_resource type="StandardMaterial3D" id="BellyMaterial"]
+albedo_color = Color(1, 0.62, 0.08, 1)
+roughness = 0.45
+
+[sub_resource type="StandardMaterial3D" id="EyeMaterial"]
+albedo_color = Color(0.015, 0.008, 0.004, 1)
+roughness = 0.18
+
+[sub_resource type="StandardMaterial3D" id="SpotMaterial"]
+albedo_color = Color(0.26, 0.025, 0.01, 1)
+
+[sub_resource type="SphereMesh" id="Body"]
+material = SubResource("BodyMaterial")
+radius = 0.22
+height = 0.62
+radial_segments = 16
+rings = 8
+
+[sub_resource type="SphereMesh" id="Belly"]
+material = SubResource("BellyMaterial")
+radius = 0.17
+height = 0.42
+radial_segments = 14
 rings = 6
 
-[node name="Dormant" type="Node3D"]
+[sub_resource type="SphereMesh" id="Eye"]
+material = SubResource("EyeMaterial")
+radius = 0.045
+height = 0.09
+radial_segments = 10
+rings = 5
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
-mesh = SubResource("Sphere")
+[sub_resource type="SphereMesh" id="Spot"]
+material = SubResource("SpotMaterial")
+radius = 0.045
+height = 0.09
+radial_segments = 8
+rings = 4
+
+[sub_resource type="CylinderMesh" id="Stalk"]
+material = SubResource("BellyMaterial")
+top_radius = 0.025
+bottom_radius = 0.035
+height = 0.15
+radial_segments = 8
+
+[sub_resource type="SphereMesh" id="Head"]
+material = SubResource("BodyMaterial")
+radius = 0.19
+height = 0.32
+radial_segments = 14
+rings = 6
+
+[node name="InfurnusDormant" type="Node3D"]
+
+[node name="Body" type="MeshInstance3D" parent="."]
+rotation_degrees = Vector3(90, 0, 0)
+mesh = SubResource("Body")
+
+[node name="Belly" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.035, 0.02)
+rotation_degrees = Vector3(90, 0, 0)
+mesh = SubResource("Belly")
+
+[node name="Head" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0, -0.25)
+rotation_degrees = Vector3(90, 0, 0)
+mesh = SubResource("Head")
+
+[node name="StalkL" type="MeshInstance3D" parent="."]
+position = Vector3(-0.1, 0.16, -0.3)
+mesh = SubResource("Stalk")
+
+[node name="StalkR" type="MeshInstance3D" parent="."]
+position = Vector3(0.1, 0.16, -0.3)
+mesh = SubResource("Stalk")
+
+[node name="EyeL" type="MeshInstance3D" parent="."]
+position = Vector3(-0.1, 0.25, -0.3)
+mesh = SubResource("Eye")
+
+[node name="EyeR" type="MeshInstance3D" parent="."]
+position = Vector3(0.1, 0.25, -0.3)
+mesh = SubResource("Eye")
+
+[node name="SpotL" type="MeshInstance3D" parent="."]
+position = Vector3(-0.13, 0.07, -0.06)
+rotation_degrees = Vector3(90, 0, 0)
+mesh = SubResource("Spot")
+
+[node name="SpotR" type="MeshInstance3D" parent="."]
+position = Vector3(0.13, 0.07, -0.06)
+rotation_degrees = Vector3(90, 0, 0)
+mesh = SubResource("Spot")
