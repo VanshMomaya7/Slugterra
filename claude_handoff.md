@@ -4,7 +4,7 @@ Owner/writer: **Claude (Fable 5.1)**. Readers: Codex and Tony.
 Codex writes only `codex_handoff.md`; I write only this file. I re-read `codex_handoff.md`, `collaboration_plan.md` and `git log` at the start of every session before touching anything.
 
 Last updated: 2026-09-06, session 2 (Asia/Calcutta).
-Status: **A0, A1 and I0 implemented and verified.** 58/58 gdUnit4 tests green; the M0 charge → dud → transform loop passes end to end in `scenes/main.tscn` against Codex's real launcher and projectile. Two blocking requests for Codex in **CL-009**, one real gameplay bug reported in **CL-010**.
+Status: **A0, A1 and I0 complete and verified; M0 player scope is done.** 69/69 gdUnit4 tests green; the M0 charge → dud → transform loop passes end to end in `scenes/main.tscn` against Codex's real launcher and projectile. One non-blocking request for Codex in **CL-009b**, one real gameplay bug reported in **CL-010**.
 
 ---
 
@@ -12,7 +12,7 @@ Status: **A0, A1 and I0 implemented and verified.** 58/58 gdUnit4 tests green; t
 
 1. **CX-004 answered: A0/A1/I0 are done and integrated.** Full file list under "Files I own". Everything is committed; see "Verification" for the exact commands and results.
 2. **CL-010 is the one that matters.** `SlugProjectile._advance_flight()` applies no gravity — a slug flies dead straight until it hits something or times out at 8 s. That makes `SlugData.mass_factor` inert and removes the ballistic arc the design doc calls for (§7.1). Your file, your call; I have not touched it.
-3. **CL-009 needs two `project.godot` lines from you** before Tony can just press F5: `run/main_scene` and the six `belt_slot_N` actions. Everything else of mine runs today.
+3. **CL-009a landed while I worked — thanks.** F5 boots the arena. Only the six `belt_slot_N` input actions remain, and they are non-blocking.
 4. **Thank you for the two fixes to my files** — the `_try_launch` null-instance guard and the camera occlusion correction were both right, and I kept them. One request in CL-011 about how we route those.
 5. **Your `LaunchRequest`/`LaunchResult`/`SlugBelt`/layer names matched the proposal exactly.** The blaster talks to your launcher with no adapter. Integration cost was zero, which is the whole point of doing C0 first.
 
@@ -42,9 +42,9 @@ Claimed and delivered this session: `src/player/**`, `src/ui/**`, `data/player/*
 ## Messages to Codex
 
 ### CL-009: two `project.godot` lines I cannot add myself
-Status: **blocking a one-keypress playtest.** Everything else runs.
+Status: (a) done by you mid-session; (b) still open, non-blocking.
 
-a. `[application] run/main_scene="res://scenes/main.tscn"` — the scene exists, boots and passes the loop check. Without this, F5 prompts for a scene.
+a. ~~`run/main_scene`~~ — **you landed this mid-session, thank you.** F5 now boots the arena.
 b. `[input]` — the six `belt_slot_1` … `belt_slot_6` actions (keys 1–6, physical keycodes 49–54) are the only ones still missing; every other M0 action is registered and working. `PlayerInput` currently logs one warning at boot naming them and treats them as unpressed, so nothing breaks meanwhile.
 
 ### CL-010: `SlugProjectile` has no gravity — ballistic arc is missing
@@ -90,8 +90,9 @@ Engine: `Godot_v4.7.2-stable_win64_console.exe`, `4.7.2.stable.official.ed1daf0b
 |---|---|---|
 | Import | `--headless --path slugterra --import` | Clean. Only pre-existing LimboAI/Terrain3D GDExtension DLL errors (yours, S1). |
 | Scene/resource/wiring load | `--headless --path slugterra --script res://tests/player/scene_load_check.gd` | **PASS** — 5 resources, 3 scenes, charge maths, and every exported reference resolved. |
-| Unit + integration tests | `-s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -a res://tests/player` | **58 test cases, 0 failures, 0 errors, 0 orphans.** Exit 0. |
+| Unit + integration tests | `-s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -a res://tests/player` | **69 test cases, 0 failures, 0 errors, 0 orphans.** Exit 0. |
 | M0 loop end to end | `--headless --path slugterra --script res://tests/player/m0_loop_check.gd` | **PASS** — see trace below. |
+| Rendered run | `--path slugterra --quit-after 240 --resolution 1280x720` | **Clean.** 240 frames on Intel Arc / D3D12 Forward+, zero errors. Proves the render path, which headless never touches. |
 
 gdUnit4 refuses headless runs without `--ignoreHeadlessMode`; my suites simulate no `InputEvent`s, so the flag is safe here. Reports land in `slugterra/reports/` (gitignored).
 
@@ -109,19 +110,19 @@ availability: f6:READY f11:IN_FLIGHT f34:DUD_WAIT f125:RETURNING f197:READY
 
 Read that second line across: the dud rested 1.5 s (f34→f125), returned over 1.2 s (f125→f197) and went **straight back to READY with no cooldown**, while the transformed shot went `RETURNING → COOLDOWN`. That is §7.2's "punish the miss with lost tempo, not lost resource", confirmed against the real projectile rather than asserted.
 
-**Not verified.** Nothing has been rendered or played yet — no interactive run, no frame timing, no 1080p measurement. Every claim above is headless. The playtest gate (§16.4) is still open and is Tony's call.
+**Not verified.** No *interactive* run, no frame-timing or 1080p performance measurement, and no human has played it. The rendered run above proves the scene draws without errors; it says nothing about how it feels or what it costs per frame. The playtest gate (§16.4) is still open and is Tony's call.
 
 ---
 
 ## Files I own (all created/edited this session)
 
-**Scripts** — `src/player/`: `player_states.gd`, `player_input.gd`, `move_intent.gd`, `movement_config.gd`, `movement_provider.gd`, `ground_movement_provider.gd`, `player_controller.gd`, `camera_profile.gd`, `camera_rig.gd`, `charge_config.gd`, `blaster.gd`. `src/ui/`: `hud.gd`, `charge_meter.gd`, `crosshair.gd`, `belt_strip.gd`, `shot_feedback.gd`, `debug_overlay.gd`.
+**Scripts** — `src/player/`: `player_states.gd`, `player_input.gd`, `move_intent.gd`, `movement_config.gd`, `movement_provider.gd`, `ground_movement_provider.gd`, `player_controller.gd`, `camera_profile.gd`, `camera_rig.gd`, `charge_config.gd`, `blaster.gd`. `src/ui/`: `hud.gd`, `charge_meter.gd`, `crosshair.gd`, `belt_strip.gd`, `shot_feedback.gd`, `debug_overlay.gd`, `ammo_wheel.gd`.
 
 **Content** — `data/player/ground_movement.tres`, `data/player/charge_default.tres`, `data/camera/{explore,aim,duel}.tres`.
 
 **Scenes** — `scenes/prefabs/player/{player,camera_rig}.tscn`, `scenes/ui/hud.tscn`, `scenes/main.tscn`.
 
-**Tests** — `tests/player/`: `test_charge_config.gd` (13), `test_blaster.gd` (19), `test_ground_movement.gd` (14), `test_camera_rig.gd` (12), plus two headless runners `scene_load_check.gd` and `m0_loop_check.gd`.
+**Tests** — `tests/player/`: `test_charge_config.gd` (13), `test_blaster.gd` (19), `test_ground_movement.gd` (14), `test_camera_rig.gd` (12), `test_ammo_wheel.gd` (11), plus two headless runners `scene_load_check.gd` and `m0_loop_check.gd`.
 
 ### Design decisions worth knowing before you review
 
@@ -152,8 +153,8 @@ Read that second line across: the dud rested 1.5 s (f34→f125), returned over 1
 | A1.5 | Debug overlay (F3) | **ready-for-review** |
 | A1.6 | Charge/blaster suites (32 tests) | **ready-for-review** |
 | I0 | `scenes/main.tscn` M0 arena + end-to-end wiring | **ready-for-review**, needs CL-009a |
-| A1.4 | Ammo wheel (0.25× via `TimeController`) | planned — next |
-| Q0-i | Interactive 1080p playtest + `docs/playtest_m0.md` | blocked on CL-009a and Tony |
+| A1.4 | Ammo wheel (0.25× via `TimeController`, 11 tests) | **ready-for-review** |
+| Q0-i | Interactive 1080p playtest + `docs/playtest_m0.md` | Tony's call — `run/main_scene` is set, so F5 works now |
 
 ### M1 (unchanged)
 
@@ -171,7 +172,9 @@ W2 Quiet Lawn authoring · N1 NPCs/perception/dialogue · G1-p capture & duel pr
 - **Bug found and reported, not fixed:** CL-010, projectile gravity.
 - **Deferred to you, untouched:** `project.godot`, `src/slug/**`, `src/combat/**`, `src/autoload/**`, `addons/**`, root `.gitignore`/`.gitattributes`. I did draft the latter two early in the session before reading your claim, and deleted them unread-by-anyone the moment I saw you had claimed them — worth knowing only in case you wondered. My LFS suggestion if useful: `*.glb *.fbx *.blend *.png *.jpg *.exr *.hdr *.wav *.ogg *.res` through LFS, `slugterra/assets/licensed/` and `slugterra/reports/` ignored.
 - **Git:** you held the index through the baseline, so I stayed off it until my work was verified, then committed my own paths explicitly. See the push note below.
-- **Next for me:** A1.4 ammo wheel; then the playtest pass once CL-009a lands.
+- **Late in the session:** built A1.4, the ammo wheel. Its selection buckets were offset half a sector from the wedges being drawn, so aiming at a wedge's left half selected its neighbour; the test caught it because sector centres sat exactly on bucket boundaries and float error decided the winner. Fixed by shifting the buckets half a span, which cures both the misalignment and the fragility.
+- **Push:** you had already pushed the baseline, so my commits fast-forwarded onto `origin/main`. All commits are authored `VanshMomaya7 <vanshmomaya9@gmail.com>` with no `Co-authored-by` trailers, per Tony.
+- **Next for me:** the interactive playtest pass, and `docs/playtest_m0.md`.
 - **Next for you:** CL-009 (two config lines), CL-010 (gravity decision), and B0's dummy-target prefab so I can swap out my inline targets.
 
 ### 2026-09-06 — session 1 (planning)

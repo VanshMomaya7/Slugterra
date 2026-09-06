@@ -18,6 +18,7 @@ extends CanvasLayer
 @export var shot_feedback_path: NodePath = ^"Root/ShotFeedback"
 @export var belt_strip_path: NodePath = ^"Root/BeltStrip"
 @export var debug_overlay_path: NodePath = ^"Root/DebugOverlay"
+@export var ammo_wheel_path: NodePath = ^"Root/AmmoWheel"
 
 var _player: Node
 var _blaster: Object
@@ -29,6 +30,7 @@ var _crosshair: Crosshair
 var _shot_feedback: ShotFeedback
 var _belt_strip: BeltStrip
 var _debug_overlay: DebugOverlay
+var _ammo_wheel: AmmoWheel
 
 
 func _ready() -> void:
@@ -37,6 +39,7 @@ func _ready() -> void:
 	_shot_feedback = get_node_or_null(shot_feedback_path) as ShotFeedback
 	_belt_strip = get_node_or_null(belt_strip_path) as BeltStrip
 	_debug_overlay = get_node_or_null(debug_overlay_path) as DebugOverlay
+	_ammo_wheel = get_node_or_null(ammo_wheel_path) as AmmoWheel
 
 	# The player may be added after the HUD; retry once the tree settles.
 	if not _try_bind_player():
@@ -66,6 +69,12 @@ func _try_bind_player() -> bool:
 
 	if _belt_strip != null:
 		_belt_strip.bind_belt(_belt)
+
+	if _ammo_wheel != null:
+		_ammo_wheel.bind(_belt, _blaster)
+		# Committing a new slot changes the equipped slug, and the notch belongs
+		# to that slug's own threshold.
+		_ammo_wheel.closed.connect(func(_index: int) -> void: _refresh_threshold())
 
 	if _camera_rig != null and _crosshair != null:
 		_camera_rig.profile_changed.connect(_on_camera_profile_changed)

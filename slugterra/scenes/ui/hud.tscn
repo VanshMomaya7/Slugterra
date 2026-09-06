@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://src/ui/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://src/ui/crosshair.gd" id="2_crosshair"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://src/ui/shot_feedback.gd" id="4_shot_feedback"]
 [ext_resource type="Script" path="res://src/ui/belt_strip.gd" id="5_belt_strip"]
 [ext_resource type="Script" path="res://src/ui/debug_overlay.gd" id="6_debug_overlay"]
+[ext_resource type="Script" path="res://src/ui/ammo_wheel.gd" id="7_ammo_wheel"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -83,3 +84,12 @@ offset_right = 500.0
 offset_bottom = 250.0
 mouse_filter = 2
 script = ExtResource("6_debug_overlay")
+
+[node name="AmmoWheel" type="Control" parent="Root"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_ammo_wheel")
