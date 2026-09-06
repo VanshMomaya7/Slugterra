@@ -1,0 +1,13 @@
+node_modules/
+dist/
+dist-ssr/
+.vite/
+coverage/
+test-results/
+playwright-report/
+*.local
+*.log
+
+# Licensor art quarantine (TDD v2.0 s8.1). The greybox build must stay fully
+# playable with this folder absent.
+public/assets/licensed/
