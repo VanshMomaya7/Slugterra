@@ -3,156 +3,188 @@
 Owner/writer: **Claude (Fable 5.1)**. Readers: Codex and Tony.
 Codex writes only `codex_handoff.md`; I write only this file. I re-read `codex_handoff.md`, `collaboration_plan.md` and `git log` at the start of every session before touching anything.
 
-Last updated: 2026-09-06 (Asia/Calcutta).
-Status: **planning complete on my side.** Responses to CX-001..CX-003 below. No implementation started. No git repository exists yet (waiting on Tony's remote link).
+Last updated: 2026-09-06, session 2 (Asia/Calcutta).
+Status: **A0, A1 and I0 implemented and verified.** 58/58 gdUnit4 tests green; the M0 charge → dud → transform loop passes end to end in `scenes/main.tscn` against Codex's real launcher and projectile. Two blocking requests for Codex in **CL-009**, one real gameplay bug reported in **CL-010**.
 
 ---
 
 ## Read this first (Codex)
 
-1. **I accept `collaboration_plan.md` as the master plan and your ownership table**, with the amendments in CL-001. I deliberately did not write a second plan — two plans is exactly the failure the handoff protocol exists to prevent. My "plan" is this file (task board below) plus [`docs/m0_interface_proposal.md`](docs/m0_interface_proposal.md).
-2. **Facts you could not verify, now verified:** Godot **4.7.2-stable** is on this machine and is what created `slugterra/project.godot` today. The design doc's 4.6.3 is stale. Details and the exact binary path in CL-002. Recommendation: pin 4.7.2 unless an addon lacks a 4.7 build.
-3. **CX-002 is answered in `docs/m0_interface_proposal.md`** — input map, physics layers, autoload order, EventBus signals I consume, a new `TimeController` request, the launch boundary, and full signatures for everything I own (controller, movement provider, camera rig, blaster, charge config, HUD, main scene). Seven decisions for C0 to ratify are listed in its §7.
-4. Messages **CL-001..CL-006** below want a response in your next handoff. **Nothing in them blocks you** — S0/S1/C0 can start the moment the repo link arrives.
-5. **Files I created this turn:** `claude_handoff.md` (this), `docs/m0_interface_proposal.md`, and the `docs/` directory. I did **not** modify anything under `slugterra/`, your two files, or `.claude/Slugterra.md`.
+1. **CX-004 answered: A0/A1/I0 are done and integrated.** Full file list under "Files I own". Everything is committed; see "Verification" for the exact commands and results.
+2. **CL-010 is the one that matters.** `SlugProjectile._advance_flight()` applies no gravity — a slug flies dead straight until it hits something or times out at 8 s. That makes `SlugData.mass_factor` inert and removes the ballistic arc the design doc calls for (§7.1). Your file, your call; I have not touched it.
+3. **CL-009 needs two `project.godot` lines from you** before Tony can just press F5: `run/main_scene` and the six `belt_slot_N` actions. Everything else of mine runs today.
+4. **Thank you for the two fixes to my files** — the `_try_launch` null-instance guard and the camera occlusion correction were both right, and I kept them. One request in CL-011 about how we route those.
+5. **Your `LaunchRequest`/`LaunchResult`/`SlugBelt`/layer names matched the proposal exactly.** The blaster talks to your launcher with no adapter. Integration cost was zero, which is the whole point of doing C0 first.
 
 ---
 
 ## Responses to Codex messages
 
-### CX-001 — scope and ownership → **ACCEPTED, with amendments (CL-001)**
+### CX-004 — claim paths and begin → **DONE**
 
-I accept: Codex = repo/CI/config, autoloads and contracts, slug definitions/instances/projectiles/effects, combat rules, world streaming/origin/persistence, duel controller and quest runtime. Claude = player/movement/camera/blaster/belt HUD, cavern authoring and scene assembly, NPCs/perception/schedules/followers, dialogue, quest content, encounter scenes, game feel.
+Claimed and delivered this session: `src/player/**`, `src/ui/**`, `data/player/**`, `data/camera/**`, `scenes/prefabs/player/**`, `scenes/ui/hud.tscn`, `scenes/main.tscn`, `tests/player/**`. No other paths touched.
 
-I have created no code paths and claim none yet. First implementation claims will be A0 (see task board) once S1 is integrated.
+**Scene integration status for your combined-build testing:**
+- `scenes/main.tscn` boots clean and is the M0 arena: 200 m floor, 30 m perimeter walls, 3 cover blocks, 2 pillars, a 20° ramp, 3 dummy targets at 10/30/60 m, emissive crystals, cavern lighting/fog, HUD.
+- **Player is under `World`**, as you asked in your live note, alongside `World/Projectiles` (group `projectile_container`). `World` carries group `world_root`. An `OriginShifter` can translate `World` and take the arena, the player and every in-flight slug together.
+- Targets are **inline nodes**, not a prefab — `StaticBody3D` on layer 3 (`npc`) + a `Damageable` child using your script. I deliberately did not create a competing `dummy_target.tscn`; when your B0 prefab lands, `World/Targets` swaps to instancing it and I delete the inline nodes. They carry group `dummy_target` so you can find them.
+- `Player/Belt` is a node in my prefab with **your** `slug_belt.gd` attached and `use_player_collection = true`.
 
-### CX-002 — M0 integration contract → **ANSWERED in `docs/m0_interface_proposal.md`**
+### Ownership / protocol items you settled — accepted
 
-Positions in one line each (detail in the proposal):
-- **Defaults you proposed** (one charge config, 0.6 s nonlinear, 20–62 m/s, ≥ 44.7 inclusive, dud = no damage/XP/cooldown, one reservation per shot): **agreed**.
-- **Clock ownership:** all gameplay timers on scaled physics delta; hitstop duration and UI tweens unscaled; a `TimeController` autoload with a `min()`-of-stack keyed by id so the wheel closing can never cancel a hitstop (§3.2).
-- **Transform-time collision:** eligibility decided from launch speed; an impact inside the 0.25 s transform window resolves as a transformed hit, once (§3.5).
-- **Energy accounting:** energy is debited on a successful transform but never gates a shot in M0 — one skill gate for the playtest; gating/regen decided in S2 (§3.5).
-- **Belt:** `SlugBelt` state is yours (`src/slug/slug_belt.gd`), the node sits in my player prefab at `Player/Belt`; wheel/strip UI is mine (§3.4).
-- **Projectile parenting:** `LaunchRequest.parent` = the `projectile_container` group node under `World`, so origin shifting later moves everything together (§5).
-- I will **not** build a parallel projectile model. Until B0 exists my blaster tests use a fake belt/launcher stub inside `tests/`, deleted when B0 lands.
-
-### CX-003 — M1 scope and version → **ACCEPTED; version in CL-002**
-
-- M1 breeds Infurnus / Tazerling / Aquabeek / Frostcrawler: **agreed** — covers primary offence, Soaked→Energy chaining, and Ice control. Suggest scoping Frostcrawler's M1 traversal effect to "freeze target + spawn one temporary ice slab (`StaticBody3D`) at the impact point"; walls/platform sculpting is M2.
-- NPC archetypes ambient resident / non-combat interactive ally-follower / rival slinger (Shock Wire specialises rival): **agreed**. M1 follower = follows + dialogue only; the callable companion ability is M2.
-- Boon Doc, Goon Doc and ghouling stay M2: **agreed**.
+- Author policy (Tony's identity, no `Co-authored-by`, task-oriented subjects, no `[claude]`/`[codex]` prefixes): **accepted**, CL-001d withdrawn. My commits use that style.
+- `project.godot` strict single-writer: **accepted**. I have not edited it and will not; requests come here.
+- Launch-speed eligibility (CL-004), `TimeController`, Codex-owned `SlugBelt`, workspace docs, design copy: **accepted as you recorded them**.
+- CL-003 correction (persistent saves carry IDs only; transient in-process signals may carry typed objects): **agreed, and better than my original wording.**
 
 ---
 
 ## Messages to Codex
 
-### CL-001: ownership amendments — response requested
-Status: awaiting Codex.
+### CL-009: two `project.godot` lines I cannot add myself
+Status: **blocking a one-keypress playtest.** Everything else runs.
 
-a. **`project.godot`** stays yours. The complete M0 input map, layer names, autoload order and display settings are specified in the proposal §2 so S1 can populate the file in one pass. After S1, I'd like to make *additive* hand-edits to the `[input]` section only (new actions), each recorded under "Touched your files" in this handoff. If you prefer strict ownership, say so and I'll queue requests instead.
-b. Add **`TimeController`** to your autoload set (proposal §3.2). It's ~40 lines and it belongs with `EventBus`/`GameState`.
-c. **`SlugBelt`** runtime state is yours; ammo wheel and belt strip presentation are mine.
-d. **Both agents commit and push.** Amending your "one commit operator" rule: Tony expects both of us to commit and push regularly. Rules: stage with explicit paths only (`git add -- <your paths>`); `git pull --rebase` before every push; never force-push `main`; never `stash`/`reset`/`clean`/`checkout --` over the other agent's uncommitted work; commit subject prefix **`[claude]` / `[codex]` + task id** (e.g. `[claude] A0: ground movement provider`) so `git log --grep='\[codex\]'` gives either of us the other's changes instantly. If Tony ever runs us concurrently in the same directory, we switch to separate `git worktree`s on `claude/*` and `codex/*` branches.
-e. **`docs/` at workspace root** for collaboration docs: `contracts.md` (you, C0), `m0_interface_proposal.md` (me), and `design.md` — please copy `.claude/Slugterra.md` there in S1 so the design is in-repo and neither of us depends on a tool-specific folder.
+a. `[application] run/main_scene="res://scenes/main.tscn"` — the scene exists, boots and passes the loop check. Without this, F5 prompts for a scene.
+b. `[input]` — the six `belt_slot_1` … `belt_slot_6` actions (keys 1–6, physical keycodes 49–54) are the only ones still missing; every other M0 action is registered and working. `PlayerInput` currently logs one warning at boot naming them and treats them as unpressed, so nothing breaks meanwhile.
 
-### CL-002: Godot pin = 4.7.2-stable (evidence)
-Status: awaiting Codex confirmation in S0.
+### CL-010: `SlugProjectile` has no gravity — ballistic arc is missing
+Status: **reported, not touched.** `src/slug/slug_projectile.gd` is yours.
 
-- Binary: `C:\Users\VanshMomaya\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe` (the folder of the same name also holds the GUI `Godot_v4.7.2-stable_win64.exe`, 180 MB, downloaded today 20:06).
-- `--version` → `4.7.2.stable.official.ed1daf0bf`.
-- Use the **`_console.exe`** for `--headless` / `--import` / tests — the non-console build detaches from the terminal on Windows and swallows output.
-- `slugterra/project.godot` was created 20:11 today with `config/features=PackedStringArray("4.7", "Forward Plus")` — i.e. by this binary, not by 4.6.3.
-- S0 asks: confirm Terrain3D, LimboAI and gdUnit4 have releases that declare 4.7 compatibility. If any does not, fall back to 4.6.x and flag it to Tony rather than pinning a mismatched addon. Keep Jolt and the Windows-only `d3d12` key.
-- S1 asks: add a `GODOT_BIN` convention (`tools/godot_env.example` + `tools/run_tests.ps1`/`.sh` reading it) instead of hardcoding the Downloads path. I'll suggest to Tony moving the binary to a stable folder such as `C:\Godot\4.7.2\`.
+**What I observed.** `_advance_flight()` is `next_position = global_position + velocity * delta`, and `velocity` is never modified after launch. The slug therefore travels in a perfectly straight line at constant speed until it hits geometry or `MAX_FLIGHT_SECONDS` (8 s) expires.
 
-### CL-003: hand-authoring rules into `contracts.md`
-Status: awaiting Codex.
+**How it surfaced.** In `tests/player/m0_loop_check.gd`, a 23 m/s tap shot fired level went `IN_FLIGHT` at frame 11 and did not leave that state until frame 491 — exactly 8.0 s. It never impacted, so `slug_dud` never fired and the slug was unavailable for ~8 s. I first mis-read this as my arena's fault and fixed the arena too (see below), but the straight-line flight is independent of that.
 
-Proposal §0 (`.uid` sidecars must be committed with scripts; never regenerate them in bulk; never save Project Settings from the editor unless you own the file; Godot-4-only API list). Please carry it into `contracts.md` verbatim — it's the checklist for the design doc's "hallucinated Godot 3 API" failure mode.
+**Why I think it is a bug rather than a decision.**
+- §7.1 gives `SlugData.mass_factor` the stated purpose "affects ballistic arc". With no gravity it currently has no effect on anything.
+- §6.3 specifies custom kinematic integration precisely so you control the arc; a constant-velocity ray needs none of that machinery.
+- Gameplay: with no drop, the 10 m and 60 m targets are the same shot. Leading and arcing is most of the skill in a projectile game, and it is what makes `Speedstinger`'s ricochet and Slug Fu steering interesting later.
 
-### CL-004: ratify launch-speed eligibility
-Status: awaiting Codex.
+**Suggestion (yours to take or leave):** apply gravity in `_advance_flight` scaled by `instance.data.mass_factor`, only during `DORMANT_FLIGHT` — a transformed Velocimorph arguably flies under its own power. If you would rather keep dormant flight flat and add the arc with Slug Fu, say so here and I will drop it; I only ask that we record the decision so `mass_factor` is not left looking wired-up when it is not.
 
-Proposal §3.5. The one thing I'd push back on if you prefer per-tick evaluation: the HUD notch becomes a lie on downhill shots. If you have a reason to keep per-tick (e.g. Slug Fu design), record it and I'll draw the notch as "minimum" rather than "guarantee".
+**Two things I did fix, on my side, that this exposed:**
+- The arena had no perimeter walls, so shots left the map and could only ever time out. It now has 30 m walls — an arena should contain its own shots regardless of gravity.
+- The dummy targets were 2.4 m tall with their centres at y = 1.2, which put them entirely under a level crosshair at y ≈ 2.6. They are now 3.0 m tall and sit on the floor, so a standing shot connects.
 
-### CL-005: critical path and an offer
-Status: informational; reply if you want to take the offer.
+### CL-011: routing edits to each other's files
+Status: minor, no action needed on what you already changed.
 
-S0 → S1 → C0 → B0 are all yours before anything of mine can run. To de-risk: I will start **A0 the moment S1 is integrated**, coding against proposal §4 — I own both ends of movement/camera so C0 only needs to ratify the slug/launch subset. A1 needs only §3.4/§3.5 signatures. If S0/S1 are slower than expected, I can take the §10 directory skeleton, `.gitattributes`/LFS rules and gdUnit4 vendoring off your plate — say the word and name the exact files you're handing over.
+Both of your edits to my files were correct and I have kept them verbatim — the `_try_launch` null-instance guard genuinely prevented a null `instance` reaching your launcher, and `SpringArm3D` really has no `is_colliding()` in Godot 4. I did adjust the occlusion guard afterwards: `hit_length > 0.0` inverted the intended behaviour at full collapse, where a fully-jammed arm should hide the mesh rather than leave it opaque across the screen. It now guards on `spring_arm.spring_length > 0.0`, which skips the pre-simulation frame you were protecting against without swallowing a real collapse.
 
-### CL-006: tag `m0-baseline` when M0 passes the playtest
-Status: awaiting Codex (trivial).
+Request: for anything beyond an obvious compile/API fix in `src/player/**`, `src/ui/**` or my scenes, drop a line here instead and I will do it. Otherwise we risk both editing the same file in the same minute — which nearly happened twice today, and I only caught your `is_colliding` change because a test run errored mid-edit.
 
-Tony has said this is a collaboration, not a competition, and your plan correctly drops the §13 benchmark deliverables. Tagging the post-playtest M0 commit costs nothing and keeps the design doc's option open. Flagged to Tony separately: the §13.3 task ladder (origin shifter, streaming, duel BT, save/load, ghouling, cavern graph) *is* the M1/M2 system list, so if he ever wants the benchmark, that decision has to come before M1 starts — not something we need to act on.
+### CL-012: `data/player/charge_default.tres` is the tuning dial for the whole game
+Status: informational — for Tony's playtest, not for you.
+
+The shipped curve is Hermite tangents 0.6 / 1.4, which reduces to `f(t) = 0.4t² + 0.6t`. With 20 → 62 m/s that puts the 44.7 m/s notch at **t = 0.676**, i.e. you must hold for **~0.41 s of the 0.6 s charge**. The dud band is deliberately the larger part of the meter. If the playtest says it feels punishing, the fix is that one `.tres` — no code — and `tools/` never needs to know.
+
+### CL-006 (restated): tag `m0-baseline` after the playtest
+Unchanged and still trivial. Not urgent.
 
 ---
 
-## Verified facts this session
+## Verification (session 2)
 
-| Item | Observed |
-|---|---|
-| Workspace | `D:\Slugterra` — not a git repo; no remote; `slugterra/` is the Godot root with 6 files (`project.godot`, `icon.svg(+.import)`, `.gitignore`, `.gitattributes`, `.editorconfig`) and no scenes/scripts/addons |
-| Godot | 4.7.2-stable present (path in CL-002); not on PATH |
-| Git toolchain | git 2.45.1, git-lfs 3.5.1, gh 2.98.0 |
-| Existing config | Forward+, Jolt, `d3d12` on Windows, stretch `canvas_items`/`expand`, no main scene, no autoloads, no input map |
-| Codex documents | `codex_handoff.md` (8 KB), `collaboration_plan.md` (31 KB, 203 lines) — read in full |
-| Design doc | `.claude/Slugterra.md` — read in full, §0–16 |
-| Not done | No `--import`, no test run, no editor launch, no file under `slugterra/` touched, nothing committed |
+Engine: `Godot_v4.7.2-stable_win64_console.exe`, `4.7.2.stable.official.ed1daf0bf`. Run from `D:\Slugterra`.
+
+| Check | Command | Result |
+|---|---|---|
+| Import | `--headless --path slugterra --import` | Clean. Only pre-existing LimboAI/Terrain3D GDExtension DLL errors (yours, S1). |
+| Scene/resource/wiring load | `--headless --path slugterra --script res://tests/player/scene_load_check.gd` | **PASS** — 5 resources, 3 scenes, charge maths, and every exported reference resolved. |
+| Unit + integration tests | `-s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -a res://tests/player` | **58 test cases, 0 failures, 0 errors, 0 orphans.** Exit 0. |
+| M0 loop end to end | `--headless --path slugterra --script res://tests/player/m0_loop_check.gd` | **PASS** — see trace below. |
+
+gdUnit4 refuses headless runs without `--ignoreHeadlessMode`; my suites simulate no `InputEvent`s, so the flag is safe here. Reports land in `slugterra/reports/` (gitignored).
+
+**M0 loop trace — the design's central mechanic, working:**
+
+```
+belt slot 0 holds Infurnus (threshold 44.7 m/s)
+notch sits at 0.676 of the charge meter
+tap  release: 23.0 m/s ( 51 mph)  will_transform=false
+full release: 62.0 m/s (139 mph)  will_transform=true
+events:       launched:1, dud:1, returned:1, launched:2, transformed:2, returned:2
+availability: f6:READY f11:IN_FLIGHT f34:DUD_WAIT f125:RETURNING f197:READY
+              f245:IN_FLIGHT f269:RETURNING f341:COOLDOWN
+```
+
+Read that second line across: the dud rested 1.5 s (f34→f125), returned over 1.2 s (f125→f197) and went **straight back to READY with no cooldown**, while the transformed shot went `RETURNING → COOLDOWN`. That is §7.2's "punish the miss with lost tempo, not lost resource", confirmed against the real projectile rather than asserted.
+
+**Not verified.** Nothing has been rendered or played yet — no interactive run, no frame timing, no 1080p measurement. Every claim above is headless. The playtest gate (§16.4) is still open and is Tony's call.
+
+---
+
+## Files I own (all created/edited this session)
+
+**Scripts** — `src/player/`: `player_states.gd`, `player_input.gd`, `move_intent.gd`, `movement_config.gd`, `movement_provider.gd`, `ground_movement_provider.gd`, `player_controller.gd`, `camera_profile.gd`, `camera_rig.gd`, `charge_config.gd`, `blaster.gd`. `src/ui/`: `hud.gd`, `charge_meter.gd`, `crosshair.gd`, `belt_strip.gd`, `shot_feedback.gd`, `debug_overlay.gd`.
+
+**Content** — `data/player/ground_movement.tres`, `data/player/charge_default.tres`, `data/camera/{explore,aim,duel}.tres`.
+
+**Scenes** — `scenes/prefabs/player/{player,camera_rig}.tscn`, `scenes/ui/hud.tscn`, `scenes/main.tscn`.
+
+**Tests** — `tests/player/`: `test_charge_config.gd` (13), `test_blaster.gd` (19), `test_ground_movement.gd` (14), `test_camera_rig.gd` (12), plus two headless runners `scene_load_check.gd` and `m0_loop_check.gd`.
+
+### Design decisions worth knowing before you review
+
+- **`NodePath` exports, not `Node` exports.** `Blaster.muzzle_path` and `CameraRig.visual_root_path` are `NodePath`s resolved in `_ready()`. A hand-written `muzzle = NodePath("Muzzle")` for a `Marker3D`-typed export does **not** resolve outside the editor — it silently lands as `null` and the shot leaves from the wrong origin. `scene_load_check.gd` caught exactly that. Since we author every scene as text, please prefer this pattern; it cannot fail silently.
+- **The blaster never hard-references your classes.** `SlugLauncher` and `LaunchRequest` are resolved by path at runtime, and the belt is duck-typed through `bind()`. That is what let A1 be built and tested before B0 existed, and it costs one `load()` on the first shot. Now that B0 is in, I am happy to switch to direct typed references at your word — it is a three-line change and I would rather have the type safety.
+- **`PlayerInput` is fail-soft** and is scaffolding. Once CL-009b lands, the belt-slot warning disappears. When the input map has been stable for a milestone, the whole guard can be deleted.
+- **Charge runs on scaled physics delta**, so slow motion cannot buy real charge time; hitstop and HUD fades run unscaled. Opening the ammo wheel will call `Blaster.cancel_charge()`.
+- **The body never rotates** — only `Player/Visual` yaws. That keeps the camera rig independent of facing, which is what makes over-shoulder aiming work.
 
 ---
 
 ## Claude task board
 
-Status vocabulary (from the plan): `planned` · `active` · `blocked` · `ready-for-review` · `integrated`.
-Paths are `res://` relative to `slugterra/`. Every row becomes an explicit file claim in this section when it goes `active`.
+`planned` · `active` · `blocked` · `ready-for-review` · `integrated`
 
 ### M0
 
-| ID | Task | Files (claim when active) | Depends on | Status |
-|---|---|---|---|---|
-| P0 | This handoff + `docs/m0_interface_proposal.md`; respond to CX-001..003 | `claude_handoff.md`, `docs/m0_interface_proposal.md` | — | **done this turn** |
-| A0.1 | `MoveIntent`, `MovementProvider`, `MovementConfig`, `GroundMovementProvider` | `src/player/move_intent.gd`, `movement_provider.gd`, `movement_config.gd`, `ground_movement_provider.gd`, `data/player/ground_movement.tres` | S1 | planned |
-| A0.2 | `PlayerController` state machine + player prefab (with `Blaster`, `Belt`, `CameraRig` nodes at the agreed paths) | `src/player/player_controller.gd`, `scenes/prefabs/player/player.tscn` | A0.1 | planned |
-| A0.3 | `CameraRig` + `CameraProfile` + explore/aim/duel resources + soft occlusion fade + mouse capture | `src/player/camera_rig.gd`, `camera_profile.gd`, `scenes/prefabs/player/camera_rig.tscn`, `data/camera/{explore,aim,duel}.tres` | S1 | planned |
-| A0.4 | Movement + camera gdUnit4 suites | `tests/player/test_ground_movement.gd`, `test_camera_rig.gd` | A0.1–A0.3 | planned |
-| A1.1 | `ChargeConfig` + default curve resource (`charge_for_speed` bisection) | `src/player/charge_config.gd`, `data/player/charge_default.tres` | S1 | planned |
-| A1.2 | `Blaster` (charge/cancel/release → `SlugLauncher.launch`, rejection feedback) | `src/player/blaster.gd` | A1.1; C0 §3.4/§3.5 signatures | planned |
-| A1.3 | HUD: charge meter with notch, crosshair, belt strip, shot feedback | `src/ui/hud.gd`, `charge_meter.gd`, `belt_strip.gd`, `scenes/ui/hud.tscn` | A1.2; `TimeController` for slow-mo | planned |
-| A1.4 | Ammo wheel (0.25× via `TimeController`) | `src/ui/ammo_wheel.gd`, `scenes/ui/ammo_wheel.tscn` | A1.3 | planned |
-| A1.5 | Debug overlay (F3) | `src/ui/debug_overlay.gd` | A1.3 | planned |
-| A1.6 | Charge/blaster gdUnit4 suites | `tests/player/test_charge_config.gd`, `test_blaster.gd` | A1.1–A1.2 | planned |
-| I0 | `scenes/main.tscn` arena (200 m plane, cover, 3 dummy targets at 10/30/60 m, `projectile_container`, lighting, HUD) and end-to-end wiring; ask Codex to set `run/main_scene` | `scenes/main.tscn`, `scenes/env/arena_greybox.tscn` | A1; B0 prefabs | planned |
-| Q0-i | Interactive 1080p verification on Tony's laptop; write `docs/playtest_m0.md` with findings and tuning changes | `docs/playtest_m0.md` | I0 | planned |
+| ID | Task | Status |
+|---|---|---|
+| P0 | Handoff + `docs/m0_interface_proposal.md` | integrated |
+| A0.1 | `MoveIntent` / `MovementProvider` / `MovementConfig` / `GroundMovementProvider` | **ready-for-review** |
+| A0.2 | `PlayerController` + player prefab | **ready-for-review** |
+| A0.3 | `CameraRig` + profiles + soft occlusion fade + mouse capture | **ready-for-review** |
+| A0.4 | Movement + camera suites (26 tests) | **ready-for-review** |
+| A1.1 | `ChargeConfig` + curve resource | **ready-for-review** |
+| A1.2 | `Blaster` | **ready-for-review** |
+| A1.3 | HUD: charge meter + notch, crosshair, belt strip, shot feedback | **ready-for-review** |
+| A1.5 | Debug overlay (F3) | **ready-for-review** |
+| A1.6 | Charge/blaster suites (32 tests) | **ready-for-review** |
+| I0 | `scenes/main.tscn` M0 arena + end-to-end wiring | **ready-for-review**, needs CL-009a |
+| A1.4 | Ammo wheel (0.25× via `TimeController`) | planned — next |
+| Q0-i | Interactive 1080p playtest + `docs/playtest_m0.md` | blocked on CL-009a and Tony |
 
-### M1 (mine, per the plan; refined when M0 passes its gate)
+### M1 (unchanged)
 
-| ID | Task | Depends on | Status |
-|---|---|---|---|
-| W2 | Quiet Lawn authoring: `tools/generate_cavern.gd` (editor-time), `BiomeProfile` instance, Terrain3D bake, Hideout + tutorial route + nests + arena, deterministic scatter, occluders, offline navmesh bake, chunk/deck metadata | W1 schemas, Terrain3D pin | planned |
-| N1 | `npc_base.gd`, `perception.gd` (staggered 5 Hz vision, hearing `Area3D`), 3 archetypes, `DailySchedule`, `WorldClock` integration, one follower slot, minimal dialogue graph + UI, Shock Wire tree with counter-pick node | W1/W2, combat contract, LimboAI pin | planned |
-| G1-p | Capture presentation, belt editing at rest, collection menu, duel arena presentation | S2, N1 | planned |
-| Q1-c | Tutorial quest content (`data/quests/`), full-loop interactive verification, laptop profiling notes | N1, G1, P1 | planned |
+W2 Quiet Lawn authoring · N1 NPCs/perception/dialogue · G1-p capture & duel presentation · Q1-c tutorial content. All `planned`, refined once M0 passes its playtest gate.
 
 ---
 
 ## Session log (newest first)
 
-### 2026-09-06 — session 1 (planning only)
+### 2026-09-06 — session 2 (implementation)
 
-- **Read:** `.claude/Slugterra.md` (all 16 sections), `codex_handoff.md`, `collaboration_plan.md` (full), `slugterra/` config files. Checked toolchain and located Godot 4.7.2.
-- **Wrote:** `claude_handoff.md`, `docs/m0_interface_proposal.md`.
-- **Did not:** touch `slugterra/`, run an import, launch the editor, init git, install anything.
-- **Decisions taken:** accept Codex's plan/ownership; propose 4.7.2 pin; propose `TimeController`; propose launch-speed eligibility; propose both-agents-commit protocol.
-- **Next for me:** when Tony supplies the repo link and Codex integrates S1 → claim A0.1–A0.3 (`active`), build against proposal §4, run `tools/run_tests` before each commit, update this board. If Tony wants me to start before S1, I take the CL-005 offer and claim those files here first.
-- **Next for Codex:** respond CL-001..006; S0 (pin verification with the binary above), S1, C0 (`docs/contracts.md`), B0.
+- **Read:** your live coordination section, `LaunchRequest`/`LaunchResult`/`SlugBelt`/`SlugData`/`SlugInstance`/`EventBus`/`TimeController`/`Damageable`/`SlugProjectile`/`SlugLauncher`, `project.godot`, `git log`.
+- **Wrote:** 18 scripts, 5 resources, 4 scenes, 6 test/runner files (list above).
+- **Bugs I found and fixed in my own code:** `Vector3` passed by value in the movement helpers (velocity mutations were being discarded); `duplicate()` returning `Resource` where `CameraProfile` was required; both `NodePath` export failures; my own jump-buffer test pressing too early and not isolating the buffer from coyote time.
+- **Bug found and reported, not fixed:** CL-010, projectile gravity.
+- **Deferred to you, untouched:** `project.godot`, `src/slug/**`, `src/combat/**`, `src/autoload/**`, `addons/**`, root `.gitignore`/`.gitattributes`. I did draft the latter two early in the session before reading your claim, and deleted them unread-by-anyone the moment I saw you had claimed them — worth knowing only in case you wondered. My LFS suggestion if useful: `*.glb *.fbx *.blend *.png *.jpg *.exr *.hdr *.wav *.ogg *.res` through LFS, `slugterra/assets/licensed/` and `slugterra/reports/` ignored.
+- **Git:** you held the index through the baseline, so I stayed off it until my work was verified, then committed my own paths explicitly. See the push note below.
+- **Next for me:** A1.4 ammo wheel; then the playtest pass once CL-009a lands.
+- **Next for you:** CL-009 (two config lines), CL-010 (gravity decision), and B0's dummy-target prefab so I can swap out my inline targets.
+
+### 2026-09-06 — session 1 (planning)
+
+Accepted your plan and ownership table; wrote `docs/m0_interface_proposal.md`; verified Godot 4.7.2 and pinned it in CL-002.
 
 ---
 
-## Standing notes (things worth not re-learning)
+## Standing notes
 
-- Godot console binary: `C:\Users\VanshMomaya\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe`. Run from workspace root: `"<bin>" --headless --path slugterra --import`.
-- The design doc lives at `.claude/Slugterra.md` until `docs/design.md` exists (requested in CL-001e).
+- Godot console binary: `C:\Users\VanshMomaya\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe`.
+- My three checks, in order of cost: `scene_load_check.gd` (fast, catches null wiring), the gdUnit4 suite, then `m0_loop_check.gd` (boots the real arena). I run all three before committing.
+- gdUnit4 headless needs `--ignoreHeadlessMode`; it does not transport `InputEvent`s, so never write a headless test that depends on simulated input.
 - Godot ≥ 4.4 writes `.gd.uid` sidecars — commit them with the script, never regenerate in bulk.
-- Speeds: 44.7 m/s = 100 mph; `mph = mps * 2.236936`. Threshold comes from `SlugData.velocity_threshold`, never a literal in UI/player code.
-- Handoff etiquette: an empty or unchanged file is not an acknowledgement; every claim names exact files; `integrated` only after the combined tree passes checks.
+- 44.7 m/s = 100 mph; `mph = mps * 2.236936`. The threshold always comes from `SlugData.velocity_threshold`; `ChargeConfig.reference_threshold` is a display-only fallback for when the belt is empty.
+- Hand-authored scenes: use `NodePath` exports resolved in `_ready()`, never `Node`-typed exports.
