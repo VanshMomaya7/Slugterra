@@ -1,0 +1,85 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://src/ui/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://src/ui/crosshair.gd" id="2_crosshair"]
+[ext_resource type="Script" path="res://src/ui/charge_meter.gd" id="3_charge_meter"]
+[ext_resource type="Script" path="res://src/ui/shot_feedback.gd" id="4_shot_feedback"]
+[ext_resource type="Script" path="res://src/ui/belt_strip.gd" id="5_belt_strip"]
+[ext_resource type="Script" path="res://src/ui/debug_overlay.gd" id="6_debug_overlay"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="Root" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Crosshair" type="Control" parent="Root"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -24.0
+offset_right = 24.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_crosshair")
+
+[node name="ChargeMeter" type="Control" parent="Root"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -210.0
+offset_top = -122.0
+offset_right = 210.0
+offset_bottom = -78.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("3_charge_meter")
+
+[node name="ShotFeedback" type="Control" parent="Root"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -176.0
+offset_right = 260.0
+offset_bottom = -140.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("4_shot_feedback")
+
+[node name="BeltStrip" type="Control" parent="Root"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -96.0
+offset_right = 370.0
+offset_bottom = -26.0
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("5_belt_strip")
+
+[node name="DebugOverlay" type="Control" parent="Root"]
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 18.0
+offset_right = 500.0
+offset_bottom = 250.0
+mouse_filter = 2
+script = ExtResource("6_debug_overlay")
